@@ -1,0 +1,48 @@
+- name: Install ups usb
+  block:
+    - name: Remove script directory
+      ansible.builtin.file:
+        path: "{{ ups_script_directory }}"
+        state: absent
+
+    - name: Create script directory
+      ansible.builtin.file:
+        path: "{{ ups_script_directory }}"
+        state: directory
+
+    - name: Copy script
+      ansible.builtin.copy:
+        src: files/ups.sh
+        dest: "{{ ups_script_directory }}/ups.sh"
+        mode: 0700
+    
+    - name: Install apcupsd for manage comport
+      ansible.builtin.apt:
+        name: apcupsd
+
+    - name: Enable configured apcupsd
+      ansible.builtin.copy:
+        src: files/apcupsd
+        dest: "{{ apcupsd_enable_config }}"
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Copy config file apcupsd
+      ansible.builtin.copy:
+        src: files/apcupsd.conf
+        dest: "{{ apcupsd_config_directory }}"
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Return motd to registered var
+      ansible.builtin.command: /etc/init.d/apcupsd restart
+  
+    - name: Create a cron file for script
+      ansible.builtin.cron:
+        name: ups
+        user: root
+        minute: "*/1"
+        job: "cd {{ ups_script_directory }}; bash {{ ups_script_directory }}/ups.sh | sponge {{ apcaccess_collecor_directory }} 2> errors.log"
+        cron_file: ansible_ups
