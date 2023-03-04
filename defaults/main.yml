@@ -1,0 +1,5 @@
+---
+ups_script_directory: /opt/monitoring/ups
+apcupsd_enable_config: /etc/default
+apcupsd_config_directory: /etc/apcupsd
+apcaccess_collecor_directory: /var/lib/node_exporter/textfile_collector/apcaccess.prom
